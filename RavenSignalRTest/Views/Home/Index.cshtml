@@ -1,0 +1,91 @@
+﻿@model IEnumerable<RavenSignalRTest.Models.Customer>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutGlobal.cshtml";
+}
+
+<h2>Realtime data proessing with Sharded RavenDB and SignalR </h2>
+<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css" rel="stylesheet">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<!-- SignalR for real-time data processing -->
+<script src="~/Scripts/jquery.signalR-2.1.2.js"></script>
+<script src="/signalr/hubs"></script>
+<script type="text/javascript">
+    var customers = {
+        signalRConnect: $.connection.signalRTestHub,
+        init: function () {
+            //Loads all customers
+            customers.signalRConnect.client.allCustomers = function (customerList) {
+                for (i = 0; i < customerList.length; i++) {
+                    $(".list-group").append("<li class='list-group-item'>" 
+                        + "<div class='row'>"
+                        + "<div class='col-lg-4'>"
+                        + customerList[i].FirstName + " "
+                        + customerList[i].LastName
+                        + "</div>"
+                        + "<div class='col-lg-4'>"
+                        + customerList[i].Address + "</i>"
+                        + "</div>"
+                        + "<div class='col-lg-4'>"
+                        + customerList[i].Region 
+                        + "</div>"
+                        + "</div>" 
+                        + "</li>");
+                }
+            };
+            $.connection.hub.start();
+        },
+        addCustomer: function () {
+            // Adds new customer
+            var newCustomer = {
+                FirstName: $("#FirstName").val(),
+                LastName: $("#LastName").val(),
+                Address: $("#Address").val(),
+                Region: $("#Region").val()
+            };
+            customers.signalRConnect.server.addCustomer(newCustomer);
+            $.connection.hub.start();
+        }
+    };
+    customers.init();
+</script>
+<style type="text/css">
+    .customer-listing
+    {
+        padding-top:2em;
+    }
+</style>
+<div class="panel panel-default">
+    <div class="panel-heading">To test real-time data processing open up two browser windows and add new customer using one of the browser windows.
+    Adding a single record should persist the data in the embedded RavenDB and update the listing on both pages.
+</div>
+</div>
+<div class="panel-body">
+    <div class="row">
+        <div class="col-lg-2">
+            <input type="text" placeholder="First Name" id="FirstName" name="FirstName" class="form-control">
+        </div>
+        <div class="col-lg-2"><input type="text" placeholder="Last Name" id="LastName" name="LastName" class="form-control"></div>
+        <div class="col-lg-4"><input type="text" id="Address" placeholder="Address" name="Address" class="form-control"></div>
+        <div class="col-lg-2">
+            <select id="Region" class="form-control">
+                <option value="Asia">Asia</option>
+                <option value="Australia">Australia</option>
+                <option value="Europe">Europe</option>
+                <option value="North America">North America</option>
+            </select>
+        </div>
+        <div class="col-lg-2">
+            <button onclick="customers.addCustomer();" class="btn btn-primary">Save</button>
+        </div>
+    </div>
+    <div class="row customer-listing">
+        <div class="col-lg-12">
+            <ul class="list-group"></ul>
+        </div>
+    </div>
+</div>
+</div>
+
